@@ -13,7 +13,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.web.servlet.MockMvc;
 
-import java.time.ZonedDateTime;
+import java.time.LocalDate;
 import java.util.Collections;
 import java.util.Set;
 
@@ -67,8 +67,8 @@ public class BaseControllerTest {
         OFFER_PUBLIC_PART.setAdminId(ADMIN_ID);
         OFFER_PUBLIC_PART.setOfferId(OFFER_ID);
         OFFER_PUBLIC_PART.setPayloadPublic(DUMMY_STRING_VALUE);
-        OFFER_PUBLIC_PART.setCreatedAt(ZonedDateTime.now());
-        OFFER_PUBLIC_PART.setModifiedAt(ZonedDateTime.now());
+        OFFER_PUBLIC_PART.setCreatedAt(LocalDate.now());
+        OFFER_PUBLIC_PART.setModifiedAt(LocalDate.now());
         OFFER_PUBLIC_PART.setOfferPrivateParts(Set.of(OFFER_PRIVATE_PART));
 
         OFFER_PRIVATE_PART.setOfferPublicPart(OFFER_PUBLIC_PART);

@@ -5,11 +5,13 @@ import com.cleevio.vexl.module.offer.dto.v1.request.DeletePrivatePartRequest;
 import com.cleevio.vexl.module.offer.dto.v2.request.CreateOfferPrivatePartRequest;
 import com.cleevio.vexl.module.offer.dto.v2.request.OfferCreateRequest;
 import com.cleevio.vexl.module.offer.dto.v2.request.OfferPrivateCreate;
+import com.cleevio.vexl.module.offer.dto.v2.request.OffersRefreshRequest;
 import com.cleevio.vexl.module.offer.dto.v2.request.UpdateOfferRequest;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 
 import java.util.List;
+import java.util.Set;
 
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public final class CreateOfferRequestTestUtil {
@@ -22,7 +24,6 @@ public final class CreateOfferRequestTestUtil {
     public static OfferCreateRequest createOfferCreateRequestV2WithOnePrivatePart() {
         return new OfferCreateRequest(
                 OfferType.SELL.name(),
-                9999999L,
                 "dummy_public_payload",
                 List.of(createOfferPrivateCreate(USER_PUBLIC_KEY_1))
         );
@@ -31,20 +32,20 @@ public final class CreateOfferRequestTestUtil {
     public static OfferCreateRequest createOfferCreateRequestCustomPrivateParts(List<OfferPrivateCreate> privateParts) {
         return new OfferCreateRequest(
                 OfferType.SELL.name(),
-                1L,
                 "dummy_public_payload",
                 privateParts
         );
     }
 
-    public static OfferCreateRequest createOfferCreateRequest() {
-        return createOfferCreateRequest(1L);
+    public static OffersRefreshRequest createOffersRefreshRequest(Set<String> adminIds) {
+        return new OffersRefreshRequest(
+                adminIds
+        );
     }
 
-    public static OfferCreateRequest createOfferCreateRequest(Long expiration) {
+    public static OfferCreateRequest createOfferCreateRequest() {
         return new OfferCreateRequest(
                 OfferType.SELL.name(),
-                expiration,
                 "dummy_public_payload",
                 List.of(createOfferPrivateCreate(USER_PUBLIC_KEY_1), createOfferPrivateCreate2(USER_PUBLIC_KEY_2))
         );
@@ -96,7 +97,6 @@ public final class CreateOfferRequestTestUtil {
     public static OfferCreateRequest createOfferCreateRequestWithPublicKeyAndOfferType(OfferType offerType, String publicKey) {
         return new OfferCreateRequest(
                 offerType.name(),
-                9999999999L,
                 "dummy_public_payload",
                 List.of(createOfferPrivateCreate(publicKey), createOfferPrivateCreate2(USER_PUBLIC_KEY_2))
         );

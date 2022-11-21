@@ -9,7 +9,7 @@ import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
-import java.time.ZonedDateTime;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
@@ -22,11 +22,11 @@ interface OfferPublicRepository extends JpaRepository<OfferPublicPart, Long>, Jp
     Optional<OfferPublicPart> findByAdminId(String adminId);
 
     @Modifying
-    @Query("delete from OfferPublicPart p where p.expiration <= :expiration")
+    @Query("delete from OfferPublicPart p where p.refreshedAt <= :expiration")
     void deleteAllExpiredPublicParts(long expiration);
 
     @Query("select count(p) from OfferPublicPart p where p.offerType = :type and p.modifiedAt > :period ")
-    int getModifiedOffersCount(ZonedDateTime period, OfferType type);
+    int getModifiedOffersCount(LocalDate period, OfferType type);
 
     @Query("select count(p) from OfferPublicPart p where p.offerType = :type ")
     int getActiveOffersCount(OfferType type);
@@ -57,4 +57,11 @@ interface OfferPublicRepository extends JpaRepository<OfferPublicPart, Long>, Jp
 
     @Query("select p from OfferPublicPart p where p.offerId = :offerId")
     Optional<OfferPublicPart> findByOfferId(String offerId);
+
+    @Modifying
+    @Query("""
+            update OfferPublicPart p set p.refreshedAt = :now
+            where p.adminId in :adminIds
+            """)
+    void refreshOffers(List<String> adminIds, long now);
 }

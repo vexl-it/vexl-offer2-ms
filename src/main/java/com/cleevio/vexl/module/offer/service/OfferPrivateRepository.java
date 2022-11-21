@@ -6,7 +6,7 @@ import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 
-import java.time.ZonedDateTime;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -30,13 +30,14 @@ interface OfferPrivateRepository extends JpaRepository<OfferPrivatePart, Long>, 
             select p from OfferPrivatePart p 
             where p.userPublicKey= :userPublicKey AND p.offerPublicPart.modifiedAt > :modifiedAt 
             AND p.payloadPrivate is not null
+            order by p.offerPublicPart.id asc
             """)
-    List<OfferPrivatePart> findAllByUserPublicKeyAndModifiedAt(String userPublicKey, ZonedDateTime modifiedAt);
+    List<OfferPrivatePart> findAllByUserPublicKeyAndModifiedAt(String userPublicKey, LocalDate modifiedAt);
 
     @Modifying
     @Query("""
                  delete from OfferPrivatePart p where 
-                 exists (select pub from OfferPublicPart pub where pub = p.offerPublicPart and pub.expiration <= :expiration)
+                 exists (select pub from OfferPublicPart pub where pub = p.offerPublicPart and pub.refreshedAt <= :expiration)
             """)
     void deleteAllExpiredPrivateParts(long expiration);
 

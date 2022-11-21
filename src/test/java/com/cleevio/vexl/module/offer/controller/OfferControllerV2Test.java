@@ -29,6 +29,12 @@ class OfferControllerV2Test extends BaseControllerTest {
     private static final String ME_EP = BASE_URL + "/me";
     private static final String MODIFIED_EP = BASE_URL + "/me/modified";
     private static final String PRIVATE_PART_EP = BASE_URL + "/private-part";
+    private static final String REFRESH_EP = BASE_URL + "/refresh";
+    private static final String REFRESH_REQUEST = """
+            {
+                "adminIds": ["7452395b496020f8055d6137aaccc2072d19f473cbce51c64731235e6d87440b", "8b83ac57e565fbb675738319a58e02f9208b5453afe88c3fe17f088bdca81431"]
+            }
+            """;
 
     @Test
     void testCreateOffer_validInput_shouldReturn200() throws Exception {
@@ -53,6 +59,7 @@ class OfferControllerV2Test extends BaseControllerTest {
                         .header(SecurityFilter.HEADER_SIGNATURE, SIGNATURE)
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
+                .andExpect(jsonPath("$.offers[0].id", notNullValue()))
                 .andExpect(jsonPath("$.offers[0].offerId", notNullValue()))
                 .andExpect(jsonPath("$.offers[0].publicPayload", notNullValue()))
                 .andExpect(jsonPath("$.offers[0].privatePayload", notNullValue()))
@@ -71,6 +78,7 @@ class OfferControllerV2Test extends BaseControllerTest {
                         .header(SecurityFilter.HEADER_SIGNATURE, SIGNATURE)
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
+                .andExpect(jsonPath("$.[0].id", notNullValue()))
                 .andExpect(jsonPath("$.[0].offerId", notNullValue()))
                 .andExpect(jsonPath("$.[0].publicPayload", notNullValue()))
                 .andExpect(jsonPath("$.[0].privatePayload", notNullValue()))
@@ -90,6 +98,7 @@ class OfferControllerV2Test extends BaseControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(asJsonString(CreateOfferRequestTestUtil.createUpdateOfferCommand(OFFER_ID))))
                 .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id", notNullValue()))
                 .andExpect(jsonPath("$.offerId", notNullValue()))
                 .andExpect(jsonPath("$.publicPayload", notNullValue()))
                 .andExpect(jsonPath("$.privatePayload", notNullValue()))
@@ -108,6 +117,7 @@ class OfferControllerV2Test extends BaseControllerTest {
                         .header(SecurityFilter.HEADER_SIGNATURE, SIGNATURE)
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
+                .andExpect(jsonPath("$.offers[0].id", notNullValue()))
                 .andExpect(jsonPath("$.offers[0].offerId", notNullValue()))
                 .andExpect(jsonPath("$.offers[0].publicPayload", notNullValue()))
                 .andExpect(jsonPath("$.offers[0].privatePayload", notNullValue()))
@@ -117,13 +127,24 @@ class OfferControllerV2Test extends BaseControllerTest {
     }
 
     @Test
-    public void testPostNewPrivatePart_validInput_shouldReturn200() throws Exception {
+    public void testPostNewPrivatePart_validInput_shouldReturn204() throws Exception {
         mvc.perform(post(PRIVATE_PART_EP)
                         .header(SecurityFilter.HEADER_PUBLIC_KEY, PUBLIC_KEY)
                         .header(SecurityFilter.HEADER_HASH, PHONE_HASH)
                         .header(SecurityFilter.HEADER_SIGNATURE, SIGNATURE)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(asJsonString(CreateOfferRequestTestUtil.createCreateOfferPrivatePartRequest(OFFER_ID, USER_PUBLIC_KEY))))
+                .andExpect(status().isNoContent());
+    }
+
+    @Test
+    public void testRefreshOffers_validInput_shouldReturn204() throws Exception {
+        mvc.perform(post(REFRESH_EP)
+                        .header(SecurityFilter.HEADER_PUBLIC_KEY, PUBLIC_KEY)
+                        .header(SecurityFilter.HEADER_HASH, PHONE_HASH)
+                        .header(SecurityFilter.HEADER_SIGNATURE, SIGNATURE)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(REFRESH_REQUEST))
                 .andExpect(status().isNoContent());
     }
 }

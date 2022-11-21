@@ -24,7 +24,7 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
-import java.time.ZonedDateTime;
+import java.time.LocalDate;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -53,16 +53,13 @@ public class OfferPublicPart {
     @ToString.Exclude
     private String offerId;
 
-    @Column(name = "created_at")
     @CreationTimestamp
-    private ZonedDateTime createdAt;
+    private LocalDate createdAt;
 
-    @Column(name = "modified_at")
-    @UpdateTimestamp
-    private ZonedDateTime modifiedAt;
+    private LocalDate modifiedAt;
 
     @Column(nullable = false)
-    private long expiration;
+    private Long refreshedAt;
 
     @Enumerated(EnumType.STRING)
     private OfferType offerType;

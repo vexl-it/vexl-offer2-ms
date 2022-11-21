@@ -10,10 +10,12 @@ import com.cleevio.vexl.module.offer.dto.v1.request.ReportOfferRequest;
 import com.cleevio.vexl.module.offer.dto.v2.request.CreateOfferPrivatePartRequest;
 import com.cleevio.vexl.module.offer.dto.v2.request.OfferCreateRequest;
 import com.cleevio.vexl.module.offer.dto.v2.request.OfferPrivateCreate;
+import com.cleevio.vexl.module.offer.dto.v2.request.OffersRefreshRequest;
 import com.cleevio.vexl.module.offer.dto.v2.request.UpdateOfferRequest;
 import com.cleevio.vexl.module.offer.entity.OfferPrivatePart;
 import com.cleevio.vexl.module.offer.entity.OfferPublicPart;
 import com.cleevio.vexl.module.offer.exception.DuplicatedPublicKeyException;
+import com.cleevio.vexl.module.offer.exception.IncorrectAdminIdFormatException;
 import com.cleevio.vexl.module.offer.exception.MissingOwnerPrivatePartException;
 import com.cleevio.vexl.module.offer.exception.OfferNotFoundException;
 import com.cleevio.vexl.module.stats.constant.StatsKey;
@@ -21,6 +23,7 @@ import com.cleevio.vexl.module.stats.dto.StatsDto;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.codec.binary.Hex;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -29,7 +32,9 @@ import org.springframework.validation.annotation.Validated;
 import javax.validation.Valid;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
-import java.time.ZonedDateTime;
+import java.time.Duration;
+import java.time.Instant;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
@@ -54,7 +59,10 @@ public class OfferService {
     private final OfferPrivateRepository offerPrivateRepository;
     private final MessageDigest messageDigest;
     private final AdvisoryLockService advisoryLockService;
+    @Value("${offer.expiration}")
+    private final Integer expirationPeriod;
     private static final long ONE = 1;
+    private static final int SIXTY_FOUR = 64;
 
     /**
      * Creating private and public part of an offer from request.
@@ -77,8 +85,9 @@ public class OfferService {
         final OfferPublicPart offerPublicPart = OfferPublicPart.builder()
                 .adminId(generateKeyValue())
                 .offerId(generateKeyValue())
-                .expiration(request.expiration())
                 .offerType(request.offerType() == null ? null : OfferType.valueOf(request.offerType().toUpperCase()))
+                .refreshedAt(Instant.now().getEpochSecond())
+                .modifiedAt(LocalDate.now())
                 .payloadPublic(request.payloadPublic())
                 .build();
 
@@ -106,7 +115,7 @@ public class OfferService {
      * This method is used to retrieve Offers that the FE does not already have stored locally.
      */
     @Transactional(readOnly = true)
-    public List<OfferPrivatePart> getNewOrModifiedOffers(ZonedDateTime modifiedAt, String publicKey) {
+    public List<OfferPrivatePart> getNewOrModifiedOffers(LocalDate modifiedAt, String publicKey) {
         return this.offerPrivateRepository.findAllByUserPublicKeyAndModifiedAt(
                 publicKey, modifiedAt
         );
@@ -161,7 +170,7 @@ public class OfferService {
             publicPart.setPayloadPublic(request.payloadPublic());
         }
 
-        publicPart.setModifiedAt(ZonedDateTime.now());
+        publicPart.setModifiedAt(LocalDate.now());
 
         final OfferPublicPart updatedPublicPart = this.offerPublicRepository.save(publicPart);
         log.info("Offer [{}] has been successfully updated.", updatedPublicPart.getOfferId());
@@ -174,10 +183,23 @@ public class OfferService {
         return this.offerPrivateRepository.findOfferByPublicKeyAndPublicPartIds(publicKey, offerIds);
     }
 
-    @Transactional(rollbackFor = Throwable.class)
+    @Transactional
     public void removeExpiredOffers() {
-        this.offerPrivateRepository.deleteAllExpiredPrivateParts(ZonedDateTime.now().toEpochSecond());
-        this.offerPublicRepository.deleteAllExpiredPublicParts(ZonedDateTime.now().toEpochSecond());
+        advisoryLockService.lock(
+                ModuleLockNamespace.OFFER,
+                OfferAdvisoryLock.REMOVING_TASK.name()
+        );
+
+        try {
+            final long expiration = Instant.now().minus(Duration.ofDays(expirationPeriod)).getEpochSecond();
+
+            log.info("Deleting all offers older then [{}].", expiration);
+
+            this.offerPrivateRepository.deleteAllExpiredPrivateParts(expiration);
+            this.offerPublicRepository.deleteAllExpiredPublicParts(expiration);
+        } catch (Exception e) {
+            log.error("Error while removing expired offers: " + e.getMessage(), e);
+        }
     }
 
     @Transactional
@@ -212,7 +234,7 @@ public class OfferService {
 
         removePrivatePartIfAlreadyExists(publicKeys, request.adminId());
         createOfferPrivateParts(privatePartsToCreate, offerPublicPart);
-        offerPublicPart.setModifiedAt(ZonedDateTime.now());
+        offerPublicPart.setModifiedAt(LocalDate.now());
     }
 
     @Transactional(readOnly = true)
@@ -240,9 +262,29 @@ public class OfferService {
                 );
     }
 
+    @Transactional
+    public void refreshOffers(@Valid final OffersRefreshRequest request, final String publicKey) {
+        advisoryLockService.lock(
+                ModuleLockNamespace.OFFER,
+                OfferAdvisoryLock.REFRESH.name(),
+                publicKey
+        );
+
+        final List<String> adminIds = request.adminIds()
+                .stream()
+                .map(String::trim)
+                .toList();
+
+        if (!areAdminIdsInCorrectFormat(adminIds)) {
+            throw new IncorrectAdminIdFormatException();
+        }
+
+        this.offerPublicRepository.refreshOffers(adminIds, Instant.now().getEpochSecond());
+    }
+
     @Transactional(readOnly = true)
     public List<StatsDto> retrieveStats(final StatsKey... statsKeys) {
-        final var minusOneDay = ZonedDateTime.now().minusDays(ONE);
+        final var minusOneDay = LocalDate.now().minusDays(ONE);
         final var medianWithPercentageCountBuy = this.offerPublicRepository.getMedianWithPercentageCount(OfferType.BUY.name());
         final var medianWithPercentageCountSell = this.offerPublicRepository.getMedianWithPercentageCount(OfferType.SELL.name());
         final List<StatsDto> statsDtos = new ArrayList<>();
@@ -353,5 +395,11 @@ public class OfferService {
                 .build();
 
         this.offerPrivateRepository.save(offerPrivatePart);
+    }
+
+    private boolean areAdminIdsInCorrectFormat(List<String> adminIds) {
+        return adminIds
+                .stream()
+                .noneMatch(it -> it.length() != SIXTY_FOUR);
     }
 }

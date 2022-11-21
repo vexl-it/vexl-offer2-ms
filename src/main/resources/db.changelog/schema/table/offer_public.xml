@@ -108,6 +108,26 @@
         <delete schemaName="public" tableName="offer_public"/>
     </changeSet>
 
+    <!-- ################################ V10 ################################# -->
+    <changeSet id="add_refreshed_at_column_and_drop_expiration" author="David Tilser">
+        <preConditions onSqlOutput="TEST" onFail="MARK_RAN">
+            <and>
+                <tableExists tableName="offer_public" schemaName="public"/>
+            </and>
+        </preConditions>
+        <addColumn tableName="offer_public" schemaName="public">
+            <column name="refreshed_at" type="bigint" defaultValue="0">
+                <constraints nullable="false"/>
+            </column>
+        </addColumn>
+        <sql>
+            update offer_public set refreshed_at = (SELECT extract(epoch from now()));
+        </sql>
+        <modifyDataType tableName="offer_public" columnName="created_at" newDataType="date"/>
+        <modifyDataType tableName="offer_public" columnName="modified_at" newDataType="date"/>
+        <dropColumn tableName="offer_public" columnName="expiration"/>
+    </changeSet>
+
     <!-- ##################################################################### -->
     <!-- ###################### TABLE INSTALL CHANGESET ###################### -->
     <!-- ##################################################################### -->
@@ -127,17 +147,17 @@
             <column name="offer_id" type="VARCHAR(64)">
                 <constraints nullable="false"/>
             </column>
-            <column name="created_at" type="TIMESTAMPTZ">
+            <column name="created_at" type="date">
                 <constraints nullable="false"/>
             </column>
-            <column name="modified_at" type="TIMESTAMPTZ">
-                <constraints nullable="false"/>
-            </column>
-            <column name="expiration" type="int8">
+            <column name="modified_at" type="date">
                 <constraints nullable="false"/>
             </column>
             <column name="offer_type" type="VARCHAR"/>
             <column name="report" type="int" defaultValue="0">
+                <constraints nullable="false"/>
+            </column>
+            <column name="refreshed_at" type="bigint" defaultValue="0">
                 <constraints nullable="false"/>
             </column>
             <column name="payload_public" type="varchar"/>

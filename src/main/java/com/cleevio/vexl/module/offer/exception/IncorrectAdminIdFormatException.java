@@ -6,7 +6,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
 @ResponseStatus(HttpStatus.BAD_REQUEST)
-public class DateFormatException extends ApiException {
+public class IncorrectAdminIdFormatException extends ApiException {
 
     @Override
     protected ApiException.Module getModule() {
@@ -15,6 +15,6 @@ public class DateFormatException extends ApiException {
 
     @Override
     protected ErrorType getErrorType() {
-        return OfferErrorType.DATE_FORMAT_EXCEPTION;
+        return OfferErrorType.INCORRECT_ADMIN_ID_FORMAT;
     }
 }

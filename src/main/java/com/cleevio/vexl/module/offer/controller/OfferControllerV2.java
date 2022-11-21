@@ -4,6 +4,7 @@ import com.cleevio.vexl.common.dto.ErrorResponse;
 import com.cleevio.vexl.common.security.filter.SecurityFilter;
 import com.cleevio.vexl.module.offer.dto.v2.request.CreateOfferPrivatePartRequest;
 import com.cleevio.vexl.module.offer.dto.v2.request.OfferCreateRequest;
+import com.cleevio.vexl.module.offer.dto.v2.request.OffersRefreshRequest;
 import com.cleevio.vexl.module.offer.dto.v2.request.UpdateOfferRequest;
 import com.cleevio.vexl.module.offer.dto.v2.response.OfferUnifiedAdminResponse;
 import com.cleevio.vexl.module.offer.dto.v2.response.OfferUnifiedResponse;
@@ -105,7 +106,7 @@ public class OfferControllerV2 {
     OffersUnifiedResponse getNewOrModifiedOffers(@RequestHeader(SecurityFilter.HEADER_PUBLIC_KEY) String publicKey,
                                                  @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) ZonedDateTime modifiedAt) {
         return new OffersUnifiedResponse(
-                this.offerService.getNewOrModifiedOffers(modifiedAt, publicKey)
+                this.offerService.getNewOrModifiedOffers(modifiedAt.toLocalDate(), publicKey)
                         .stream()
                         .map(OfferUnifiedResponse::new)
                         .toList()
@@ -139,5 +140,19 @@ public class OfferControllerV2 {
     @Operation(summary = "Create a private part of the Offer.")
     void addPrivatePartsOffer(@RequestBody CreateOfferPrivatePartRequest request) {
         this.offerService.addPrivatePartsOffer(request);
+    }
+
+    @PostMapping("/refresh")
+    @SecurityRequirements({
+            @SecurityRequirement(name = SecurityFilter.HEADER_PUBLIC_KEY),
+            @SecurityRequirement(name = SecurityFilter.HEADER_HASH),
+            @SecurityRequirement(name = SecurityFilter.HEADER_SIGNATURE),
+    })
+    @ApiResponse(responseCode = "204")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    @Operation(summary = "Refresh the offers.", description = "You should always send all your offers. Offers which are not refreshed will be deleted after set period.")
+    void refreshOffers(@RequestBody OffersRefreshRequest request,
+                       @RequestHeader(SecurityFilter.HEADER_PUBLIC_KEY) String publicKey) {
+        this.offerService.refreshOffers(request, publicKey);
     }
 }

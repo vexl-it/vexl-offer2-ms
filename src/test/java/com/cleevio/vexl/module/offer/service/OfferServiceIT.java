@@ -9,7 +9,8 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import java.time.ZonedDateTime;
+import java.time.LocalDate;
+import java.time.Period;
 import java.util.List;
 
 import static com.cleevio.vexl.util.CreateOfferRequestTestUtil.USER_PUBLIC_KEY_1;
@@ -91,7 +92,7 @@ class OfferServiceIT {
         final var privateCreateRequest = request.offerPrivateList().get(0);
 
         offerService.createOffer(request, USER_PUBLIC_KEY_1);
-        final List<OfferPrivatePart> offer = offerService.getNewOrModifiedOffers(ZonedDateTime.now().minusHours(1), USER_PUBLIC_KEY_1);
+        final List<OfferPrivatePart> offer = offerService.getNewOrModifiedOffers(LocalDate.now().minus(Period.ofDays(1)), USER_PUBLIC_KEY_1);
 
         assertThat(offer).hasSize(1);
 
@@ -106,7 +107,7 @@ class OfferServiceIT {
         final var request = CreateOfferRequestTestUtil.createOfferCreateRequest();
 
         offerService.createOffer(request, USER_PUBLIC_KEY_1);
-        final List<OfferPrivatePart> offer = offerService.getNewOrModifiedOffers(ZonedDateTime.now().plusHours(1), USER_PUBLIC_KEY_1);
+        final List<OfferPrivatePart> offer = offerService.getNewOrModifiedOffers(LocalDate.now().plus(Period.ofDays(1)), USER_PUBLIC_KEY_1);
 
         assertThat(offer).hasSize(0);
     }
@@ -134,59 +135,8 @@ class OfferServiceIT {
     }
 
     @Test
-    void removeExpiredOffers_shouldBeRemovedAll() {
-        final var request = CreateOfferRequestTestUtil.createOfferCreateRequest();
-        final var request2 = CreateOfferRequestTestUtil.createOfferCreateRequest();
-
-        offerService.createOffer(request, USER_PUBLIC_KEY_1);
-        offerService.createOffer(request2, USER_PUBLIC_KEY_2);
-
-        assertThat(privateRepository.findAll()).hasSize(4);
-        assertThat(publicRepository.findAll()).hasSize(2);
-
-        offerService.removeExpiredOffers();
-
-        assertThat(privateRepository.findAll()).hasSize(0);
-        assertThat(publicRepository.findAll()).hasSize(0);
-    }
-
-    @Test
-    void removeExpiredOffers_shouldBeRemovedOneOffer() {
-        final var request = CreateOfferRequestTestUtil.createOfferCreateRequest();
-        final var request2 = CreateOfferRequestTestUtil.createOfferCreateRequest(ZonedDateTime.now().plusDays(1).toEpochSecond());
-
-        offerService.createOffer(request, USER_PUBLIC_KEY_1);
-        offerService.createOffer(request2, USER_PUBLIC_KEY_2);
-
-        assertThat(privateRepository.findAll()).hasSize(4);
-        assertThat(publicRepository.findAll()).hasSize(2);
-
-        offerService.removeExpiredOffers();
-
-        assertThat(privateRepository.findAll()).hasSize(2);
-        assertThat(publicRepository.findAll()).hasSize(1);
-    }
-
-    @Test
-    void removeExpiredOffers_nothingShouldBeRemoved() {
-        final var request = CreateOfferRequestTestUtil.createOfferCreateRequest(ZonedDateTime.now().plusDays(1).toEpochSecond());
-        final var request2 = CreateOfferRequestTestUtil.createOfferCreateRequest(ZonedDateTime.now().plusDays(1).toEpochSecond());
-
-        offerService.createOffer(request, USER_PUBLIC_KEY_1);
-        offerService.createOffer(request2, USER_PUBLIC_KEY_2);
-
-        assertThat(privateRepository.findAll()).hasSize(4);
-        assertThat(publicRepository.findAll()).hasSize(2);
-
-        offerService.removeExpiredOffers();
-
-        assertThat(privateRepository.findAll()).hasSize(4);
-        assertThat(publicRepository.findAll()).hasSize(2);
-    }
-
-    @Test
     void removeOnePrivatePart_shouldBeRemoved() {
-        final var request = CreateOfferRequestTestUtil.createOfferCreateRequest(ZonedDateTime.now().plusDays(1).toEpochSecond());
+        final var request = CreateOfferRequestTestUtil.createOfferCreateRequest();
 
         final OfferPrivatePart createdOffer = offerService.createOffer(request, USER_PUBLIC_KEY_1);
 
@@ -207,7 +157,7 @@ class OfferServiceIT {
 
     @Test
     void removeOnePrivatePartWithOfferId_invalidInput_shouldDeleteNothing() {
-        final var request = CreateOfferRequestTestUtil.createOfferCreateRequest(ZonedDateTime.now().plusDays(1).toEpochSecond());
+        final var request = CreateOfferRequestTestUtil.createOfferCreateRequest();
 
         final OfferPrivatePart createdOffer = offerService.createOffer(request, USER_PUBLIC_KEY_1);
 
@@ -222,7 +172,7 @@ class OfferServiceIT {
 
     @Test
     void addPrivatePartOffer_shouldBeAdded() {
-        final var request = CreateOfferRequestTestUtil.createOfferCreateRequest(ZonedDateTime.now().plusDays(1).toEpochSecond());
+        final var request = CreateOfferRequestTestUtil.createOfferCreateRequest();
         final OfferPrivatePart createdOffer = offerService.createOffer(request, USER_PUBLIC_KEY_1);
 
         final var adminId = offerService.findOfferByPublicKeyAndPublicPartId(USER_PUBLIC_KEY_1, createdOffer.getOfferPublicPart().getOfferId())
@@ -241,7 +191,7 @@ class OfferServiceIT {
 
     @Test
     void addPrivatePartOfferWithOfferId_invalidInput_shouldThrowOfferNotFoundException() {
-        final var request = CreateOfferRequestTestUtil.createOfferCreateRequest(ZonedDateTime.now().plusDays(1).toEpochSecond());
+        final var request = CreateOfferRequestTestUtil.createOfferCreateRequest();
         final OfferPrivatePart createdOffer = offerService.createOffer(request, USER_PUBLIC_KEY_1);
 
         assertThat(privateRepository.findAll()).hasSize(2);
@@ -256,7 +206,7 @@ class OfferServiceIT {
 
     @Test
     void addPrivatePartOffer_duplicatedPublicKey_shouldRemoveAndRecreatePrivatePart() {
-        final var request = CreateOfferRequestTestUtil.createOfferCreateRequest(ZonedDateTime.now().plusDays(1).toEpochSecond());
+        final var request = CreateOfferRequestTestUtil.createOfferCreateRequest();
         final OfferPrivatePart createdOffer = offerService.createOffer(request, USER_PUBLIC_KEY_1);
 
         final var adminId = offerService.findOfferByPublicKeyAndPublicPartId(USER_PUBLIC_KEY_1, createdOffer.getOfferPublicPart().getOfferId())
@@ -273,7 +223,7 @@ class OfferServiceIT {
 
     @Test
     void addPrivatePartOffer_duplicatedPublicKeyInRequest_shouldCreateOnlyOnce() {
-        final var request = CreateOfferRequestTestUtil.createOfferCreateRequest(ZonedDateTime.now().plusDays(1).toEpochSecond());
+        final var request = CreateOfferRequestTestUtil.createOfferCreateRequest();
 
         final OfferPrivatePart createdOffer = offerService.createOffer(request, USER_PUBLIC_KEY_1);
 
@@ -300,7 +250,7 @@ class OfferServiceIT {
 
     @Test
     void addPrivatePartOffer_noExistingOfferId_shouldReturnOfferNotFoundException() {
-        final var request = CreateOfferRequestTestUtil.createOfferCreateRequest(ZonedDateTime.now().plusDays(1).toEpochSecond());
+        final var request = CreateOfferRequestTestUtil.createOfferCreateRequest();
         offerService.createOffer(request, USER_PUBLIC_KEY_1);
 
         assertThat(privateRepository.findAll()).hasSize(2);

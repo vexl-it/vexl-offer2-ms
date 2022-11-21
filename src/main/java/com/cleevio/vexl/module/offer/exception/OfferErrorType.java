@@ -15,7 +15,7 @@ public enum OfferErrorType implements ErrorType {
 	MISSING_OWNER_PRIVATE_PART("104", "Cannot create/update an offer. Missing private part encrypted by offer owner's public key."),
 	DATE_FORMAT_EXCEPTION("105", "Wrong date format. Correct date format example - 2022-04-09T09:42:53.000Z. Date MUST be in UTC."),
 	DUPLICATED_PUBLIC_KEY("106", "There is more than one private part with the same public key. This is not allowed."),
-	API_VERSION_NOT_SUPPORTED("107", "API is not supported for this operation."),
+	INCORRECT_ADMIN_ID_FORMAT("107", "Incorrect admin id format."),
 	;
 
 	/**
