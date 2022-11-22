@@ -28,7 +28,7 @@ interface OfferPrivateRepository extends JpaRepository<OfferPrivatePart, Long>, 
 
     @Query("""
             select p from OfferPrivatePart p 
-            where p.userPublicKey= :userPublicKey AND p.offerPublicPart.modifiedAt > :modifiedAt 
+            where p.userPublicKey= :userPublicKey AND p.offerPublicPart.modifiedAt >= :modifiedAt 
             AND p.payloadPrivate is not null
             order by p.offerPublicPart.id asc
             """)
