@@ -59,7 +59,7 @@ public class OfferPublicPart {
     private LocalDate modifiedAt;
 
     @Column(nullable = false)
-    private Long refreshedAt;
+    private LocalDate refreshedAt;
 
     @Enumerated(EnumType.STRING)
     private OfferType offerType;

@@ -22,8 +22,8 @@ interface OfferPublicRepository extends JpaRepository<OfferPublicPart, Long>, Jp
     Optional<OfferPublicPart> findByAdminId(String adminId);
 
     @Modifying
-    @Query("delete from OfferPublicPart p where p.refreshedAt <= :expiration")
-    void deleteAllExpiredPublicParts(long expiration);
+    @Query("delete from OfferPublicPart p where p.refreshedAt < :expiration")
+    void deleteAllExpiredPublicParts(LocalDate expiration);
 
     @Query("select count(p) from OfferPublicPart p where p.offerType = :type and p.modifiedAt > :period ")
     int getModifiedOffersCount(LocalDate period, OfferType type);
@@ -60,8 +60,8 @@ interface OfferPublicRepository extends JpaRepository<OfferPublicPart, Long>, Jp
 
     @Modifying
     @Query("""
-            update OfferPublicPart p set p.refreshedAt = :now
+            update OfferPublicPart p set p.refreshedAt = CURRENT_DATE 
             where p.adminId in :adminIds
             """)
-    void refreshOffers(List<String> adminIds, long now);
+    void refreshOffers(List<String> adminIds);
 }

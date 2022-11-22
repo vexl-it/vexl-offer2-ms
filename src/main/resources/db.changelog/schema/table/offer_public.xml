@@ -116,13 +116,12 @@
             </and>
         </preConditions>
         <addColumn tableName="offer_public" schemaName="public">
-            <column name="refreshed_at" type="bigint" defaultValue="0">
-                <constraints nullable="false"/>
-            </column>
+            <column name="refreshed_at" type="date"/>
         </addColumn>
         <sql>
-            update offer_public set refreshed_at = (SELECT extract(epoch from now()));
+            update offer_public set refreshed_at = CURRENT_DATE;
         </sql>
+        <addNotNullConstraint tableName="offer_public" columnName="refreshed_at"/>
         <modifyDataType tableName="offer_public" columnName="created_at" newDataType="date"/>
         <modifyDataType tableName="offer_public" columnName="modified_at" newDataType="date"/>
         <dropColumn tableName="offer_public" columnName="expiration"/>
@@ -157,7 +156,7 @@
             <column name="report" type="int" defaultValue="0">
                 <constraints nullable="false"/>
             </column>
-            <column name="refreshed_at" type="bigint" defaultValue="0">
+            <column name="refreshed_at" type="date">
                 <constraints nullable="false"/>
             </column>
             <column name="payload_public" type="varchar"/>

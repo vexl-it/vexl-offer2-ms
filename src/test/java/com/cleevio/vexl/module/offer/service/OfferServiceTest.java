@@ -125,6 +125,6 @@ class OfferServiceTest {
     void refreshOffers_correctFormat_shouldBeUpdated() {
         offerService.refreshOffers(CreateOfferRequestTestUtil.createOffersRefreshRequest(Set.of(ADMIN_ID)), USER_PUBLIC_KEY_2);
 
-        Mockito.verify(publicRepository).refreshOffers(eq(List.of(ADMIN_ID)), anyLong());
+        Mockito.verify(publicRepository).refreshOffers(eq(List.of(ADMIN_ID)));
     }
 }

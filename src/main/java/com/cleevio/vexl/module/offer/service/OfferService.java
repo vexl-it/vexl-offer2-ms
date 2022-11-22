@@ -86,7 +86,7 @@ public class OfferService {
                 .adminId(generateKeyValue())
                 .offerId(generateKeyValue())
                 .offerType(request.offerType() == null ? null : OfferType.valueOf(request.offerType().toUpperCase()))
-                .refreshedAt(Instant.now().getEpochSecond())
+                .refreshedAt(LocalDate.now())
                 .modifiedAt(LocalDate.now())
                 .payloadPublic(request.payloadPublic())
                 .build();
@@ -191,7 +191,7 @@ public class OfferService {
         );
 
         try {
-            final long expiration = Instant.now().minus(Duration.ofDays(expirationPeriod)).getEpochSecond();
+            final LocalDate expiration = LocalDate.now().minusDays(expirationPeriod);
 
             log.info("Deleting all offers older then [{}].", expiration);
 
@@ -279,7 +279,7 @@ public class OfferService {
             throw new IncorrectAdminIdFormatException();
         }
 
-        this.offerPublicRepository.refreshOffers(adminIds, Instant.now().getEpochSecond());
+        this.offerPublicRepository.refreshOffers(adminIds);
     }
 
     @Transactional(readOnly = true)

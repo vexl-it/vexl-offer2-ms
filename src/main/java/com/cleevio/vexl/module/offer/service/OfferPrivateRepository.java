@@ -37,9 +37,9 @@ interface OfferPrivateRepository extends JpaRepository<OfferPrivatePart, Long>, 
     @Modifying
     @Query("""
                  delete from OfferPrivatePart p where 
-                 exists (select pub from OfferPublicPart pub where pub = p.offerPublicPart and pub.refreshedAt <= :expiration)
+                 exists (select pub from OfferPublicPart pub where pub = p.offerPublicPart and pub.refreshedAt < :expiration)
             """)
-    void deleteAllExpiredPrivateParts(long expiration);
+    void deleteAllExpiredPrivateParts(LocalDate expiration);
 
     @Query("""
             select p from OfferPrivatePart p 
