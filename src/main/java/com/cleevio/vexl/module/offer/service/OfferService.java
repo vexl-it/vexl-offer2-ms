@@ -32,8 +32,6 @@ import org.springframework.validation.annotation.Validated;
 import javax.validation.Valid;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
-import java.time.Duration;
-import java.time.Instant;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -342,7 +340,7 @@ public class OfferService {
     private void removePrivatePartIfAlreadyExists(Set<String> publicKeys, String adminId) {
         if (this.offerPrivateRepository.existsByUserPublicKeysAndAdminId(publicKeys, adminId)) {
             log.warn("""
-                    There is(are) already created private part(s) with the public key. 
+                    There is(are) already created private part(s) with the public key.
                     The private part(s) will be deleted and new will be created.
                     """);
             this.offerPrivateRepository.deletePrivatePartOfferByAdminIdAndPublicKeys(adminId, publicKeys);

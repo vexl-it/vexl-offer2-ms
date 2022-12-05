@@ -71,3 +71,8 @@ spec:
                 secretKeyRef:
                   key: secret.aes-key
                   name: spring-profile-offer-ms
+            - name: SENTRY_DNS
+              valueFrom:
+                secretKeyRef:
+                  key: sentry.dsn
+                  name: spring-profile-offer-ms
