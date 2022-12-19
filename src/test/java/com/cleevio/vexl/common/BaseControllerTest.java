@@ -18,6 +18,7 @@ import java.util.Collections;
 import java.util.Set;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
 
 public class BaseControllerTest {
 
@@ -51,7 +52,7 @@ public class BaseControllerTest {
     public void setup() {
         OfferPrivatePart privatePart = getPrivatePart();
         privatePart.setOfferPublicPart(getPublicOffer());
-        Mockito.when(signatureService.isSignatureValid(any())).thenReturn(true);
+        Mockito.when(signatureService.isSignatureValid(any(), anyInt())).thenReturn(true);
         Mockito.when(offerService.findOfferByPublicKeyAndPublicPartId(any(String.class), any(String.class))).thenReturn(privatePart);
     }
 
