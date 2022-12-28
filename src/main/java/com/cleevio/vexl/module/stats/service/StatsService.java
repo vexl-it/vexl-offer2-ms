@@ -13,6 +13,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Slf4j
@@ -39,6 +40,21 @@ public class StatsService {
             repository.saveAll(statsEntity);
         } catch (Exception e) {
             log.error("Error while processing stats: " + e.getMessage(), e);
+        }
+    }
+
+    public void reportExpiration(final int expiredPrivateCount, final int expiredPublicCount) {
+        final List<Stats> entitiesToSave = new ArrayList<>();
+        if(expiredPrivateCount > 0) {
+           entitiesToSave.add(new Stats(StatsKey.EXPIRED_PRIVATE_COUNT, expiredPrivateCount));
+        }
+
+        if(expiredPublicCount > 0) {
+            entitiesToSave.add(new Stats(StatsKey.EXPIRED_PUBLIC_COUNT, expiredPublicCount));
+        }
+
+        if(!entitiesToSave.isEmpty()) {
+            repository.saveAll(entitiesToSave);
         }
     }
 }
