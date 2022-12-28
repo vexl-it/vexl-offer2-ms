@@ -44,17 +44,9 @@ public class StatsService {
     }
 
     public void reportExpiration(final int expiredPrivateCount, final int expiredPublicCount) {
-        final List<Stats> entitiesToSave = new ArrayList<>();
-        if(expiredPrivateCount > 0) {
-           entitiesToSave.add(new Stats(StatsKey.EXPIRED_PRIVATE_COUNT, expiredPrivateCount));
-        }
-
-        if(expiredPublicCount > 0) {
-            entitiesToSave.add(new Stats(StatsKey.EXPIRED_PUBLIC_COUNT, expiredPublicCount));
-        }
-
-        if(!entitiesToSave.isEmpty()) {
-            repository.saveAll(entitiesToSave);
-        }
+        repository.saveAll(List.of(
+                new Stats(StatsKey.EXPIRED_PRIVATE_COUNT, expiredPrivateCount),
+                new Stats(StatsKey.EXPIRED_PUBLIC_COUNT, expiredPublicCount))
+        );
     }
 }
