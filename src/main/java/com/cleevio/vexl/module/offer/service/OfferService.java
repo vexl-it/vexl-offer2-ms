@@ -20,6 +20,7 @@ import com.cleevio.vexl.module.offer.exception.MissingOwnerPrivatePartException;
 import com.cleevio.vexl.module.offer.exception.OfferNotFoundException;
 import com.cleevio.vexl.module.stats.constant.StatsKey;
 import com.cleevio.vexl.module.stats.dto.StatsDto;
+import com.cleevio.vexl.module.stats.service.StatsService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.codec.binary.Hex;
@@ -56,6 +57,7 @@ public class OfferService {
     private final OfferPublicRepository offerPublicRepository;
     private final OfferPrivateRepository offerPrivateRepository;
     private final MessageDigest messageDigest;
+    private final StatsService statsService;
     private final AdvisoryLockService advisoryLockService;
     @Value("${offer.expiration}")
     private final Integer expirationPeriod;
@@ -193,8 +195,11 @@ public class OfferService {
 
             log.info("Deleting all offers older then [{}].", expiration);
 
-            this.offerPrivateRepository.deleteAllExpiredPrivateParts(expiration);
-            this.offerPublicRepository.deleteAllExpiredPublicParts(expiration);
+            final int expiredPrivateCount = this.offerPrivateRepository.deleteAllExpiredPrivateParts(expiration);
+            final int expiredPublicCount =this.offerPublicRepository.deleteAllExpiredPublicParts(expiration);
+
+            statsService.reportExpiration(expiredPrivateCount, expiredPublicCount);
+
         } catch (Exception e) {
             log.error("Error while removing expired offers: " + e.getMessage(), e);
         }
