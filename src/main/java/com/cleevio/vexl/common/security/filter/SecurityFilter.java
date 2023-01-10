@@ -4,6 +4,7 @@ import com.cleevio.vexl.common.dto.ErrorResponse;
 import com.cleevio.vexl.common.security.AuthenticationHolder;
 import com.cleevio.vexl.common.service.SignatureService;
 import com.cleevio.vexl.common.service.query.CheckSignatureValidityQuery;
+import com.cleevio.vexl.common.utils.NumberUtils;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
@@ -23,6 +24,7 @@ public class SecurityFilter extends OncePerRequestFilter {
     public static final String HEADER_PUBLIC_KEY = "public-key";
     public static final String HEADER_HASH = "hash";
     public static final String HEADER_SIGNATURE = "signature";
+    public static final String HEADER_CRYPTO_VERSION = "crypto-version";
 
     private final SignatureService signatureService;
 
@@ -37,6 +39,7 @@ public class SecurityFilter extends OncePerRequestFilter {
         final String publicKey = request.getHeader(HEADER_PUBLIC_KEY);
         final String hash = request.getHeader(HEADER_HASH);
         final String signature = request.getHeader(HEADER_SIGNATURE);
+        final int cryptoVersion = NumberUtils.parseIntOrFallback(request.getHeader(HEADER_CRYPTO_VERSION), 1);
 
         if (signature == null || publicKey == null || hash == null) {
             filterChain.doFilter(request, response);
@@ -44,7 +47,7 @@ public class SecurityFilter extends OncePerRequestFilter {
         }
 
         try {
-            if (signatureService.isSignatureValid(new CheckSignatureValidityQuery(publicKey, hash, signature))) {
+            if (signatureService.isSignatureValid(new CheckSignatureValidityQuery(publicKey, hash, signature), cryptoVersion)) {
                 AuthenticationHolder authenticationHolder;
 
                 authenticationHolder = new AuthenticationHolder(null, null);
