@@ -9,9 +9,9 @@
         <relativePath/> <!-- lookup parent from repository -->
     </parent>
     <groupId>com.cleevio</groupId>
-    <artifactId>vexl</artifactId>
+    <artifactId>Offer</artifactId>
     <version>0.0.1-SNAPSHOT</version>
-    <name>vexl</name>
+    <name>vexl-offer</name>
     <description>vexl</description>
 
     <properties>
