@@ -9,7 +9,7 @@
         <relativePath/> <!-- lookup parent from repository -->
     </parent>
     <groupId>com.cleevio</groupId>
-    <artifactId>Offer</artifactId>
+    <artifactId>vexl</artifactId>
     <version>0.0.1-SNAPSHOT</version>
     <name>vexl-offer</name>
     <description>vexl</description>
@@ -102,9 +102,9 @@
             <optional>true</optional>
         </dependency>
         <dependency>
-            <groupId>net.java.dev.jna</groupId>
-            <artifactId>jna-platform</artifactId>
-            <version>5.12.1</version>
+            <groupId>org.bouncycastle</groupId>
+            <artifactId>bcpg-jdk15to18</artifactId>
+            <version>1.72.3</version>
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
