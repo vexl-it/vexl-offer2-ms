@@ -13,5 +13,7 @@ public enum StatsKey {
     OFFER_PERC_50_SELL,
     OFFER_PERC_95_BUY,
     OFFER_PERC_95_SELL,
+    EXPIRED_PUBLIC_COUNT,
+    EXPIRED_PRIVATE_COUNT,
     ;
 }
