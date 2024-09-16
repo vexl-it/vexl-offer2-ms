@@ -23,7 +23,7 @@ interface OfferPublicRepository extends JpaRepository<OfferPublicPart, Long>, Jp
 
     @Modifying
     @Query("delete from OfferPublicPart p where p.refreshedAt < :expiration")
-    void deleteAllExpiredPublicParts(LocalDate expiration);
+    int deleteAllExpiredPublicParts(LocalDate expiration);
 
     @Query("select count(p) from OfferPublicPart p where p.offerType = :type and p.modifiedAt > :period ")
     int getModifiedOffersCount(LocalDate period, OfferType type);
